@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Database, Zap, Shield, Users, ArrowRight, CheckCircle, BarChart3, FileSpreadsheet } from 'lucide-react'
+import { Database, Zap, Shield, Users, ArrowRight, CheckCircle, BarChart3, FileSpreadsheet, Star, Globe, Lock } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -17,6 +17,11 @@ export default function HomePage() {
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                 DataMotionPro
               </span>
+            </div>
+            <div className="hidden md:flex items-center gap-8 mr-8">
+              <a href="#features" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Features</a>
+              <a href="#testimonials" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Testimonials</a>
+              <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Pricing</a>
             </div>
             <div className="flex items-center gap-4">
               <Link
@@ -38,188 +43,182 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Zap className="h-4 w-4" />
-              <span>Powerful Data Management Platform</span>
-            </div>
-            
-            <h1 className="text-6xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              Organize Your Data
-              <span className="block bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                Like Never Before
-              </span>
-            </h1>
-            
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              A modern, intuitive platform for managing spreadsheets, databases, and workflows. 
-              Built for teams that value speed and simplicity.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                href="/auth/signup"
-                className="group bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl flex items-center gap-2"
-              >
-                Start Free Trial
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition" />
-              </Link>
-              <Link
-                href="/auth/signin"
-                className="bg-gray-100 text-gray-900 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-200 transition"
-              >
-                View Demo
-              </Link>
-            </div>
-
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <span>Free forever plan</span>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in">
+            <Zap className="h-4 w-4" />
+            <span>The Future of Data Management is Here</span>
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 tracking-tight">
+            Manage Data with
+            <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Unrivaled Efficiency
+            </span>
+          </h1>
+          
+          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            DataMotionPro combines the power of a database with the simplicity of a spreadsheet. 
+            Import, organize, and automate your workflows in seconds.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <Link
+              href="/auth/signup"
+              className="group bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl flex items-center gap-2"
+            >
+              Start Free Trial
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition" />
+            </Link>
+            <Link
+              href="/auth/signin"
+              className="bg-white border border-gray-200 text-gray-900 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-50 transition shadow-sm"
+            >
+              View Demo
+            </Link>
           </div>
 
-          {/* Hero Image Placeholder */}
-          <div className="mt-20 max-w-5xl mx-auto">
-            <div className="bg-gradient-to-br from-blue-50 to-gray-100 rounded-2xl shadow-2xl border border-gray-200 p-8 aspect-video flex items-center justify-center">
-              <div className="text-center">
-                <FileSpreadsheet className="h-24 w-24 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Product Screenshot / Demo Video</p>
-                <p className="text-gray-400 text-sm mt-2">Interns: Add your design here</p>
-              </div>
+          {/* Hero Image / Mockup */}
+          <div className="relative max-w-5xl mx-auto">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25"></div>
+            <div className="relative bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=2000" 
+                alt="DataMotionPro Dashboard Mockup" 
+                className="w-full h-auto"
+              />
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need to Manage Data
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Everything You Need to Scale
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed to make data management effortless
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              We've built the tools so you can focus on what matters: your data.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition group">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Database className="h-7 w-7 text-white" />
+            {[
+              { title: 'Smart Workspaces', desc: 'Customizable environments for every project and team.', icon: Globe, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { title: 'Real-time Sync', desc: 'Collaborate instantly with live updates and cell-level locking.', icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+              { title: 'Ironclad Security', desc: 'Enterprise-grade encryption and granular permission controls.', icon: Lock, color: 'text-purple-600', bg: 'bg-purple-50' },
+              { title: 'Deep Insights', desc: 'Powerful filtering and reporting tools for better decisions.', icon: BarChart3, color: 'text-green-600', bg: 'bg-green-50' },
+            ].map((f, i) => (
+              <div key={i} className="bg-white p-8 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all duration-300">
+                <div className={`${f.bg} ${f.color} w-12 h-12 rounded-xl flex items-center justify-center mb-6`}>
+                  <f.icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{f.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{f.desc}</p>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Smart Workspaces
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Organize projects into dedicated workspaces with custom tables, columns, and workflows.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition group">
-              <div className="bg-gradient-to-br from-green-500 to-green-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Zap className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Lightning Fast
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Import CSV files instantly, edit cells in real-time, and experience blazing-fast performance.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition group">
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Shield className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Enterprise Security
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Bank-level encryption, secure authentication, and role-based access control built-in.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition group">
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
-                <Users className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Team Collaboration
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Invite team members, share workspaces, and collaborate seamlessly on shared data.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-white">
+      {/* Testimonials */}
+      <section id="testimonials" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-12 text-center">
-            <div>
-              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">
-                10,000+
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900">Trusted by Data Teams</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { name: 'Sarah Chen', role: 'Data Analyst at TechFlow', text: 'The best data tool I have used in years. It just works.' },
+              { name: 'James Miller', role: 'Product Manager', text: 'DataMotionPro saved us hours of manual entry every single week.' },
+              { name: 'Elena Rodriguez', role: 'CTO at CloudScale', text: 'The permissions system is exactly what our enterprise clients needed.' },
+            ].map((t, i) => (
+              <div key={i} className="bg-gray-50 p-8 rounded-2xl border border-gray-100">
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
+                </div>
+                <p className="text-gray-700 italic mb-6">"{t.text}"</p>
+                <div className="flex items-center gap-3">
+                  <img src={`https://ui-avatars.com/api/?name=${t.name}&background=random`} alt={t.name} className="h-10 w-10 rounded-full" />
+                  <div>
+                    <h4 className="font-bold text-gray-900">{t.name}</h4>
+                    <p className="text-sm text-gray-500">{t.role}</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-600 text-lg">Active Users</p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">
-                1M+
-              </div>
-              <p className="text-gray-600 text-lg">Rows Managed</p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">
-                99.9%
-              </div>
-              <p className="text-gray-600 text-lg">Uptime</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-600 to-blue-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Transform Your Data Management?
-          </h2>
-          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
-            Join thousands of teams already using DataMotionPro to organize and analyze their data.
-          </p>
-          <Link
-            href="/auth/signup"
-            className="inline-flex items-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-gray-100 transition shadow-xl"
-          >
-            Get Started Free
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900">Simple, Transparent Pricing</h2>
+          </div>
+          <div className="grid md:grid-cols-2 max-w-4xl mx-auto gap-8">
+            <div className="bg-white p-10 rounded-3xl border border-gray-200 shadow-sm hover:shadow-md transition">
+              <h3 className="text-xl font-bold mb-2">Free</h3>
+              <div className="text-4xl font-extrabold mb-6">$0<span className="text-lg font-normal text-gray-500">/mo</span></div>
+              <ul className="space-y-4 mb-10">
+                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-green-500" /> 1 Workspace</li>
+                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-green-500" /> 1,000 Rows</li>
+                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-green-500" /> Community Support</li>
+              </ul>
+              <Link href="/auth/signup" className="block text-center w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-xl transition">Start for Free</Link>
+            </div>
+            <div className="bg-white p-10 rounded-3xl border-2 border-blue-600 shadow-xl relative">
+              <div className="absolute top-0 right-10 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold">MOST POPULAR</div>
+              <h3 className="text-xl font-bold mb-2">Pro</h3>
+              <div className="text-4xl font-extrabold mb-6">$19<span className="text-lg font-normal text-gray-500">/mo</span></div>
+              <ul className="space-y-4 mb-10">
+                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> Unlimited Workspaces</li>
+                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> 100,000 Rows</li>
+                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> Priority Support</li>
+                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> Advanced Permissions</li>
+              </ul>
+              <Link href="/auth/signup" className="block text-center w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition">Go Pro</Link>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
+      <footer className="bg-gray-900 text-gray-400 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-lg">
-                <Database className="h-5 w-5 text-white" />
+          <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
+            <div className="max-w-xs">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <Database className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xl font-bold text-white">DataMotionPro</span>
               </div>
-              <span className="text-lg font-bold text-white">DataMotionPro</span>
+              <p className="text-sm leading-relaxed">The modern data layer for your next big thing. Scale faster, build better.</p>
             </div>
-            <p className="text-sm">
-              2024 DataMotionPro. All rights reserved.
-            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
+              <div>
+                <h4 className="text-white font-bold mb-4">Product</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-white transition">Features</a></li>
+                  <li><a href="#" className="hover:text-white transition">Integrations</a></li>
+                  <li><a href="#" className="hover:text-white transition">Pricing</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-bold mb-4">Company</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-white transition">About</a></li>
+                  <li><a href="#" className="hover:text-white transition">Careers</a></li>
+                  <li><a href="#" className="hover:text-white transition">Privacy</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-gray-800 text-center text-sm">
+            &copy; 2024 DataMotionPro. Built with passion for data teams.
           </div>
         </div>
       </footer>
