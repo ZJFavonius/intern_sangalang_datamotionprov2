@@ -80,12 +80,29 @@ export default function HomePage() {
           {/* Hero Image / Mockup */}
           <div className="relative max-w-5xl mx-auto">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25"></div>
-            <div className="relative bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=2000" 
-                alt="DataMotionPro Dashboard Mockup" 
-                className="w-full h-auto"
-              />
+            <div className="relative bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden aspect-video flex items-center justify-center bg-slate-50">
+              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center opacity-90"></div>
+              <div className="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-xl max-w-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-blue-600 p-2 rounded-lg">
+                    <Database className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="font-bold text-gray-900">DataMotion Dashboard</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full w-3/4 bg-blue-500"></div>
+                  </div>
+                  <div className="h-4 w-5/6 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full w-1/2 bg-indigo-500"></div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 pt-2">
+                    <div className="h-16 bg-blue-50 rounded-xl border border-blue-100"></div>
+                    <div className="h-16 bg-indigo-50 rounded-xl border border-indigo-100"></div>
+                    <div className="h-16 bg-purple-50 rounded-xl border border-purple-100"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
