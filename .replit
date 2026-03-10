@@ -9,6 +9,9 @@ channel = "stable-25_05"
 
 [userenv.development]
 
+[userenv.shared]
+NEXTAUTH_SECRET = "wzIOiezYt8d+Q53+zKtS5WuG7Q/lxaZFOJPWn31AWgk="
+
 [workflows]
 runButton = "Project"
 
