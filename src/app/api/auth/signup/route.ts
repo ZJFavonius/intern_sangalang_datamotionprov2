@@ -27,19 +27,27 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-      },
-    })
-
-    return NextResponse.json(
-      { message: 'User created successfully', userId: user.id },
-      { status: 201 }
-    )
-  } catch (error) {
+    try {
+      const user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+        },
+      })
+      return NextResponse.json(
+        { message: 'User created successfully', userId: user.id },
+        { status: 201 }
+      )
+    } catch (dbError: any) {
+      console.error('Prisma Create Error:', dbError)
+      return NextResponse.json(
+        { error: 'Database error', details: dbError.message },
+        { status: 500 }
+      )
+    }
+  } catch (error: any) {
+    console.error('Signup error details:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
