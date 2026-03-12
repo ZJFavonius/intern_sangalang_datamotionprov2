@@ -77,29 +77,105 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Hero Image / Mockup */}
-          <div className="relative max-w-5xl mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25"></div>
-            <div className="relative bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden aspect-video flex items-center justify-center bg-slate-50">
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center opacity-90"></div>
-              <div className="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-xl max-w-lg">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-blue-600 p-2 rounded-lg">
-                    <Database className="h-5 w-5 text-white" />
-                  </div>
-                  <span className="font-bold text-gray-900">DataMotion Dashboard</span>
+          {/* Hero Image / Mockup - Workspace with Data Table */}
+          <div className="relative max-w-6xl mx-auto">
+            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur-2xl opacity-20"></div>
+            <div className="relative bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
+              {/* Browser Chrome */}
+              <div className="bg-gray-800 px-4 py-3 border-b border-gray-700 flex items-center gap-3">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 </div>
-                <div className="space-y-3">
-                  <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full w-3/4 bg-blue-500"></div>
+                <div className="flex-1 mx-4">
+                  <div className="bg-gray-700 rounded-lg px-3 py-1.5 text-gray-400 text-xs text-center">
+                    app.datamotionpro.com/workspaces/project-alpha
                   </div>
-                  <div className="h-4 w-5/6 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full w-1/2 bg-indigo-500"></div>
+                </div>
+                <span className="text-gray-400 text-xs font-medium">DataMotionPro</span>
+              </div>
+              
+              {/* Content */}
+              <div className="bg-white p-6">
+                <div className="grid grid-cols-4 gap-6">
+                  {/* Left Sidebar */}
+                  <div className="col-span-1 border-r border-gray-200 pr-4">
+                    <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <Database className="h-4 w-4 text-blue-600" />
+                      DataMotionPro
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">My Workspaces</div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg cursor-pointer">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-xs font-medium text-gray-900">Project Alpha</span>
+                        </div>
+                        <div className="flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-gray-100">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs font-medium text-gray-600">Sales Pipeline</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button className="w-full mt-4 py-2 px-3 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-1">
+                      <span>+</span> New Workspace
+                    </button>
                   </div>
-                  <div className="grid grid-cols-3 gap-3 pt-2">
-                    <div className="h-16 bg-blue-50 rounded-xl border border-blue-100"></div>
-                    <div className="h-16 bg-indigo-50 rounded-xl border border-indigo-100"></div>
-                    <div className="h-16 bg-purple-50 rounded-xl border border-purple-100"></div>
+                  
+                  {/* Main Content - Data Table */}
+                  <div className="col-span-3">
+                    <div className="mb-4">
+                      <h2 className="text-lg font-bold text-gray-900 mb-1">Customer Data</h2>
+                      <p className="text-xs text-gray-500">346 rows • 5 columns</p>
+                    </div>
+                    
+                    {/* Table */}
+                    <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                      <table className="w-full text-xs">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr>
+                            <th className="px-3 py-2 text-left font-bold text-gray-900">NAME</th>
+                            <th className="px-3 py-2 text-left font-bold text-gray-900">EMAIL</th>
+                            <th className="px-3 py-2 text-left font-bold text-gray-900">STATUS</th>
+                            <th className="px-3 py-2 text-left font-bold text-gray-900">PLAN</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          <tr className="hover:bg-gray-50">
+                            <td className="px-3 py-2 text-gray-900 font-medium">Sarah Johnson</td>
+                            <td className="px-3 py-2 text-gray-600">sarah@company.com</td>
+                            <td className="px-3 py-2"><span className="px-2 py-1 bg-green-100 text-green-700 font-medium rounded">Active</span></td>
+                            <td className="px-3 py-2 text-gray-900">Pro</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50">
+                            <td className="px-3 py-2 text-gray-900 font-medium">Michael Chen</td>
+                            <td className="px-3 py-2 text-gray-600">michael@startup.co</td>
+                            <td className="px-3 py-2"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 font-medium rounded">Pending</span></td>
+                            <td className="px-3 py-2 text-gray-900">Starter</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50">
+                            <td className="px-3 py-2 text-gray-900 font-medium">Emily Rodriguez</td>
+                            <td className="px-3 py-2 text-gray-600">emily@enterprise.com</td>
+                            <td className="px-3 py-2"><span className="px-2 py-1 bg-green-100 text-green-700 font-medium rounded">Active</span></td>
+                            <td className="px-3 py-2 text-gray-900">Enterprise</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    {/* Features Bar */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2 text-xs">
+                      <div className="px-2 py-1 bg-blue-50 text-blue-700 font-medium rounded flex items-center gap-1">
+                        ⚡ Real-time Collaboration
+                      </div>
+                      <div className="px-2 py-1 bg-blue-50 text-blue-700 font-medium rounded flex items-center gap-1">
+                        ✏️ Editable Cells
+                      </div>
+                      <div className="px-2 py-1 bg-blue-50 text-blue-700 font-medium rounded flex items-center gap-1">
+                        📊 CSV Import/Export
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -173,30 +249,53 @@ export default function HomePage() {
       <section id="pricing" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Simple, Transparent Pricing</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-gray-600">Choose the perfect plan for your team. All plans include a 14-day free trial.</p>
           </div>
-          <div className="grid md:grid-cols-2 max-w-4xl mx-auto gap-8">
-            <div className="bg-white p-10 rounded-3xl border border-gray-200 shadow-sm hover:shadow-md transition">
-              <h3 className="text-xl font-bold mb-2">Free</h3>
-              <div className="text-4xl font-extrabold mb-6">$0<span className="text-lg font-normal text-gray-500">/mo</span></div>
-              <ul className="space-y-4 mb-10">
-                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-green-500" /> 1 Workspace</li>
-                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-green-500" /> 1,000 Rows</li>
-                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-green-500" /> Community Support</li>
+          <div className="grid md:grid-cols-3 max-w-6xl mx-auto gap-8">
+            {/* Starter Plan */}
+            <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition">
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Starter</h3>
+              <div className="text-3xl font-extrabold mb-6">$0<span className="text-sm font-normal text-gray-500">/mo</span></div>
+              <p className="text-sm text-gray-600 mb-6">Perfect for getting started</p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />1 Workspace</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />1,000 Rows/mo</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />Community Support</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />Basic CSV Import</li>
               </ul>
-              <Link href="/auth/signup" className="block text-center w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-xl transition">Start for Free</Link>
+              <Link href="/auth/signup" className="block text-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-lg transition text-sm">Start Free</Link>
             </div>
-            <div className="bg-white p-10 rounded-3xl border-2 border-blue-600 shadow-xl relative">
-              <div className="absolute top-0 right-10 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold">MOST POPULAR</div>
-              <h3 className="text-xl font-bold mb-2">Pro</h3>
-              <div className="text-4xl font-extrabold mb-6">$19<span className="text-lg font-normal text-gray-500">/mo</span></div>
-              <ul className="space-y-4 mb-10">
-                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> Unlimited Workspaces</li>
-                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> 100,000 Rows</li>
-                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> Priority Support</li>
-                <li className="flex items-center gap-2 text-gray-600"><CheckCircle className="h-5 w-5 text-blue-500" /> Advanced Permissions</li>
+
+            {/* Pro Plan - Featured */}
+            <div className="bg-white p-8 rounded-2xl border-2 border-blue-600 shadow-xl relative transform md:scale-105">
+              <div className="absolute top-0 right-6 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold">POPULAR</div>
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Pro</h3>
+              <div className="text-3xl font-extrabold mb-6">$29<span className="text-sm font-normal text-gray-500">/mo</span></div>
+              <p className="text-sm text-gray-600 mb-6">Best for growing teams</p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-blue-500" />Unlimited Workspaces</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-blue-500" />100,000 Rows/mo</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-blue-500" />Priority Email Support</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-blue-500" />Advanced Permissions</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-blue-500" />CSV Import/Export</li>
               </ul>
-              <Link href="/auth/signup" className="block text-center w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition">Go Pro</Link>
+              <Link href="/auth/signup" className="block text-center w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition text-sm">Go Pro</Link>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition">
+              <h3 className="text-lg font-bold mb-2 text-gray-900">Enterprise</h3>
+              <div className="text-3xl font-extrabold mb-6">Custom<span className="text-sm font-normal text-gray-500"></span></div>
+              <p className="text-sm text-gray-600 mb-6">For large-scale operations</p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-purple-500" />Everything in Pro</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-purple-500" />Unlimited Rows/mo</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-purple-500" />24/7 Phone & Chat</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-purple-500" />Custom Integrations</li>
+                <li className="flex items-center gap-2 text-gray-600 text-sm"><CheckCircle className="h-4 w-4 text-purple-500" />SSO & Advanced Security</li>
+              </ul>
+              <Link href="/auth/signup" className="block text-center w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition text-sm">Contact Sales</Link>
             </div>
           </div>
         </div>
