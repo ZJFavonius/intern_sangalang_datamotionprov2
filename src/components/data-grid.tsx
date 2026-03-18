@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,7 +8,7 @@ import {
   ColumnDef,
   VisibilityState,
 } from '@tanstack/react-table'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, MoreHorizontal, Copy, FileText, Type } from 'lucide-react'
 
 interface Column {
   id: string
@@ -42,6 +42,49 @@ interface DataGridProps {
   onDeleteRow: (rowId: string) => void
 }
 
+function RowActionsMenu({ onDelete, onDuplicate }: { onDelete: () => void; onDuplicate: () => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative flex items-center justify-center">
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
+        className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+      >
+        <MoreHorizontal className="h-3.5 w-3.5" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+          <button
+            onClick={(e) => { e.stopPropagation(); onDuplicate(); setOpen(false) }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+          >
+            <Copy className="h-3.5 w-3.5 text-gray-400" />
+            Duplicate row
+          </button>
+          <div className="h-px bg-gray-100 mx-2" />
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); setOpen(false) }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete row
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function DataGrid({
   tableId,
   columns,
@@ -54,54 +97,60 @@ export function DataGrid({
   onAddColumn,
   onDeleteRow,
 }: DataGridProps) {
-  const [editingCell, setEditingCell] = useState<{
-    rowId: string
-    columnName: string
-  } | null>(null)
+  const [editingCell, setEditingCell] = useState<{ rowId: string; columnName: string } | null>(null)
   const [editValue, setEditValue] = useState('')
+  const [selectedRow, setSelectedRow] = useState<string | null>(null)
 
   const filteredRows = useMemo(() => {
     let result = rows
-
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       result = result.filter((row) =>
-        Object.values(row.data).some((val) =>
-          String(val ?? '').toLowerCase().includes(q)
-        )
+        Object.values(row.data).some((val) => String(val ?? '').toLowerCase().includes(q))
       )
     }
-
     for (const f of filters) {
       if (!f.column) continue
       result = result.filter((row) => {
         const cellVal = String(row.data[f.column] ?? '').toLowerCase()
         const filterVal = f.value.toLowerCase()
         switch (f.operator) {
-          case 'contains':     return cellVal.includes(filterVal)
-          case 'equals':       return cellVal === filterVal
-          case 'starts_with':  return cellVal.startsWith(filterVal)
-          case 'ends_with':    return cellVal.endsWith(filterVal)
-          case 'is_empty':     return cellVal === ''
-          case 'not_empty':    return cellVal !== ''
-          default:             return true
+          case 'contains':    return cellVal.includes(filterVal)
+          case 'equals':      return cellVal === filterVal
+          case 'starts_with': return cellVal.startsWith(filterVal)
+          case 'ends_with':   return cellVal.endsWith(filterVal)
+          case 'is_empty':    return cellVal === ''
+          case 'not_empty':   return cellVal !== ''
+          default:            return true
         }
       })
     }
-
     return result
   }, [rows, searchQuery, filters])
+
+  async function handleDuplicateRow(row: Row) {
+    const res = await fetch(`/api/tables/${tableId}/rows`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cells: { ...row.data } }),
+    })
+    if (res.ok) onAddRow()
+  }
 
   const tableColumns: ColumnDef<Row>[] = [
     {
       id: 'row-number',
-      header: '#',
+      header: () => (
+        <div className="flex items-center justify-center w-full">
+          <FileText className="h-3 w-3 text-gray-300" />
+        </div>
+      ),
       cell: ({ row }) => (
-        <div className="text-gray-400 text-xs font-medium select-none">
+        <div className="flex items-center justify-center text-[11px] text-gray-300 font-mono select-none group-hover:text-gray-500 transition-colors">
           {row.index + 1}
         </div>
       ),
-      size: 50,
+      size: 48,
       enableHiding: false,
     },
     ...columns
@@ -109,21 +158,27 @@ export function DataGrid({
       .map((col) => ({
         id: col.name,
         accessorKey: col.name,
-        header: col.name,
+        header: () => (
+          <div className="flex items-center gap-1.5 w-full">
+            <Type className="h-3 w-3 text-gray-400 flex-shrink-0" />
+            <span className="truncate">{col.name}</span>
+          </div>
+        ),
         cell: ({ row }: any) => {
           const rowId = row.original.id
           const columnName = col.name
           const value = row.original.data[columnName] ?? ''
-          const isEditing =
-            editingCell?.rowId === rowId &&
-            editingCell?.columnName === columnName
+          const isEditing = editingCell?.rowId === rowId && editingCell?.columnName === columnName
+          const isSelected = selectedRow === rowId
 
           return (
             <div
-              className="min-h-[36px] flex items-center"
+              className="min-h-[34px] flex items-center relative"
+              onClick={() => setSelectedRow(rowId)}
               onDoubleClick={() => {
                 setEditingCell({ rowId, columnName })
                 setEditValue(value)
+                setSelectedRow(rowId)
               }}
             >
               {isEditing ? (
@@ -136,21 +191,17 @@ export function DataGrid({
                     setEditingCell(null)
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      onCellUpdate(rowId, columnName, editValue)
-                      setEditingCell(null)
-                    } else if (e.key === 'Escape') {
-                      setEditingCell(null)
-                    }
+                    if (e.key === 'Enter') { onCellUpdate(rowId, columnName, editValue); setEditingCell(null) }
+                    else if (e.key === 'Escape') setEditingCell(null)
                   }}
                   autoFocus
-                  className="w-full px-2 py-1 border-2 border-blue-500 rounded focus:outline-none text-sm"
+                  className="absolute inset-0 w-full h-full px-3 py-1 border-2 border-blue-500 bg-white rounded-none focus:outline-none text-sm z-10 shadow-lg"
                 />
               ) : (
-                <div className="px-2 py-1 w-full cursor-pointer hover:bg-blue-50/50 rounded text-sm">
-                  {value !== '' ? value : (
-                    <span className="text-gray-300 text-xs">—</span>
-                  )}
+                <div className={`px-3 py-1.5 w-full text-sm transition-colors leading-tight ${
+                  isSelected && !isEditing ? 'text-gray-900' : 'text-gray-700'
+                } ${value === '' ? 'text-gray-300' : ''}`}>
+                  {value !== '' ? value : <span className="italic text-[11px]">—</span>}
                 </div>
               )}
             </div>
@@ -161,12 +212,10 @@ export function DataGrid({
       id: 'actions',
       header: '',
       cell: ({ row }) => (
-        <button
-          onClick={() => onDeleteRow(row.original.id)}
-          className="text-gray-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+        <RowActionsMenu
+          onDelete={() => onDeleteRow(row.original.id)}
+          onDuplicate={() => handleDuplicateRow(row.original)}
+        />
       ),
       size: 40,
       enableHiding: false,
@@ -181,74 +230,95 @@ export function DataGrid({
   })
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white" onClick={(e) => {
+      if ((e.target as HTMLElement).closest('td') === null) setSelectedRow(null)
+    }}>
       <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-gray-50 sticky top-0 z-10 border-b border-gray-200">
+        <table className="w-full border-collapse">
+          {/* Column Headers */}
+          <thead className="sticky top-0 z-20">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+              <tr key={headerGroup.id} className="bg-gray-50 border-b-2 border-gray-200">
+                {headerGroup.headers.map((header, i) => (
                   <th
                     key={header.id}
-                    className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wide border-r border-gray-100 last:border-r-0"
-                    style={{
-                      width: header.getSize(),
-                      minWidth: header.id === 'row-number' ? 50 : 160,
-                    }}
+                    className={`
+                      px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 tracking-wide
+                      border-r border-gray-200 last:border-r-0 select-none
+                      ${i === 0 ? 'text-center w-12' : ''}
+                      ${header.id === 'actions' ? 'w-10' : ''}
+                    `}
+                    style={{ minWidth: header.id === 'row-number' ? 48 : header.id === 'actions' ? 40 : 160 }}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
-                <th className="px-4 py-2.5 border-r border-gray-100">
+                {/* Add column button in header */}
+                <th className="px-3 py-2.5 w-32 border-r border-gray-200">
                   <button
                     onClick={onAddColumn}
-                    className="text-gray-400 hover:text-blue-600 transition flex items-center gap-1 text-xs font-semibold whitespace-nowrap"
+                    className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 hover:text-blue-600 transition-colors whitespace-nowrap"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-3 w-3" />
                     Add field
                   </button>
                 </th>
               </tr>
             ))}
           </thead>
+
+          {/* Body */}
           <tbody>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td
-                  colSpan={tableColumns.length + 1}
-                  className="text-center py-16 text-gray-400 text-sm"
-                >
-                  No records match your search or filter.
+                <td colSpan={tableColumns.length + 1} className="text-center py-20">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-gray-300" />
+                    </div>
+                    <p className="text-sm text-gray-400 font-medium">No records found</p>
+                    <p className="text-xs text-gray-300">Try adjusting your search or filters</p>
+                  </div>
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="group hover:bg-gray-50/80 transition border-b border-gray-100 last:border-b-0"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="border-r border-gray-100 px-4 py-1 last:border-r-0"
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              table.getRowModel().rows.map((row, idx) => {
+                const isSelected = selectedRow === row.original.id
+                return (
+                  <tr
+                    key={row.id}
+                    className={`group border-b border-gray-100 transition-colors cursor-default ${
+                      isSelected
+                        ? 'bg-blue-50/60'
+                        : idx % 2 === 0
+                        ? 'bg-white hover:bg-blue-50/30'
+                        : 'bg-gray-50/40 hover:bg-blue-50/30'
+                    }`}
+                    onClick={() => setSelectedRow(row.original.id)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className={`border-r border-gray-100 last:border-r-0 relative ${
+                          isSelected ? 'border-blue-100' : ''
+                        }`}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                    <td className="border-r-0 w-10 px-1">
                     </td>
-                  ))}
-                  <td className="px-4 py-1"></td>
-                </tr>
-              ))
+                  </tr>
+                )
+              })
             )}
-            <tr>
-              <td colSpan={tableColumns.length + 1} className="px-4 py-2 border-t border-gray-100">
+
+            {/* Add row */}
+            <tr className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors">
+              <td colSpan={tableColumns.length + 1} className="px-3 py-2">
                 <button
                   onClick={onAddRow}
-                  className="text-gray-400 hover:text-blue-600 transition flex items-center gap-1 text-xs font-semibold"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-blue-600 transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add record
@@ -257,6 +327,17 @@ export function DataGrid({
             </tr>
           </tbody>
         </table>
+      </div>
+
+      {/* Footer stats */}
+      <div className="border-t border-gray-100 px-4 py-2 flex items-center justify-between bg-gray-50/60">
+        <span className="text-[11px] text-gray-400 font-medium">
+          {table.getRowModel().rows.length} record{table.getRowModel().rows.length !== 1 ? 's' : ''}
+          {filteredRows.length !== rows.length && ` (filtered from ${rows.length})`}
+        </span>
+        <span className="text-[11px] text-gray-300 font-medium">
+          Double-click a cell to edit
+        </span>
       </div>
     </div>
   )

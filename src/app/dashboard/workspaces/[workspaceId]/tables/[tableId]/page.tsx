@@ -10,6 +10,7 @@ import { DataGrid, FilterRule } from '@/components/data-grid'
 import {
   Loader2, Upload, ArrowLeft, Plus, Columns,
   Search, Filter, Download, X, ChevronDown, Eye, EyeOff,
+  TableProperties, CheckCircle2, AlertCircle, FileText,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -37,12 +38,8 @@ export default function TablePage() {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (filterPanelRef.current && !filterPanelRef.current.contains(e.target as Node)) {
-        setShowFilterPanel(false)
-      }
-      if (columnsPanelRef.current && !columnsPanelRef.current.contains(e.target as Node)) {
-        setShowColumnsPanel(false)
-      }
+      if (filterPanelRef.current && !filterPanelRef.current.contains(e.target as Node)) setShowFilterPanel(false)
+      if (columnsPanelRef.current && !columnsPanelRef.current.contains(e.target as Node)) setShowColumnsPanel(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -147,164 +144,173 @@ export default function TablePage() {
     const firstCol = table?.columns?.[0]?.name ?? ''
     setFilters((prev) => [...prev, { column: firstCol, operator: 'contains', value: '' }])
   }
-
   function updateFilter(index: number, patch: Partial<FilterRule>) {
     setFilters((prev) => prev.map((f, i) => (i === index ? { ...f, ...patch } : f)))
   }
-
   function removeFilter(index: number) {
     setFilters((prev) => prev.filter((_, i) => i !== index))
   }
-
   function toggleColumnVisibility(colName: string) {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [colName]: prev[colName] === false ? true : false,
-    }))
+    setColumnVisibility((prev) => ({ ...prev, [colName]: prev[colName] === false ? true : false }))
   }
 
+  const cols: any[] = table?.columns ?? []
   const activeFilterCount = filters.filter((f) => f.column && (f.operator === 'is_empty' || f.operator === 'not_empty' || f.value)).length
   const hiddenColumnCount = Object.values(columnVisibility).filter((v) => v === false).length
 
   if (status === 'loading' || tableLoading || rowsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-[70vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <div className="flex items-center justify-center h-[70vh] flex-col gap-4">
+          <div className="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-400 font-medium">Loading table…</p>
         </div>
       </DashboardLayout>
     )
   }
 
-  const cols: any[] = table?.columns ?? []
-
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-80px)] overflow-hidden">
+      <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white">
 
-        {/* Toolbar Header */}
-        <div className="flex flex-col gap-3 py-4 px-6 bg-white border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        {/* ── Top Toolbar ── */}
+        <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+          {/* Row 1: breadcrumb + title + actions */}
+          <div className="flex items-center justify-between px-5 py-3 gap-4">
+            <div className="flex items-center gap-3 min-w-0">
               <Link
                 href={`/dashboard/workspaces/${workspaceId}`}
-                className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition"
+                className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
               </Link>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                  {table?.name || 'Table'}
-                </h1>
-                <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
-                  <span className="uppercase font-bold tracking-wider">{rowsData?.rows?.length || 0} ROWS</span>
-                  <span>•</span>
-                  <span className="uppercase font-bold tracking-wider">{cols.length} COLUMNS</span>
+
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex-shrink-0 w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <TableProperties className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-base font-bold text-gray-900 truncate leading-tight">
+                    {table?.name || 'Table'}
+                  </h1>
+                  <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium">
+                    <span>{rowsData?.rows?.length ?? 0} rows</span>
+                    <span className="text-gray-200">•</span>
+                    <span>{cols.length} fields</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Right actions */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 onClick={() => setShowImportModal(true)}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all"
               >
-                <Upload className="h-4 w-4" />
+                <Upload className="h-3.5 w-3.5" />
                 Import
               </button>
               <button
                 onClick={handleExport}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-3.5 w-3.5" />
                 Export
               </button>
-              <div className="h-6 w-px bg-gray-100 mx-1"></div>
+
+              <div className="h-5 w-px bg-gray-200 mx-0.5" />
+
               <button
                 onClick={() => addRowMutation.mutate()}
-                className="flex items-center gap-2 px-4 py-1.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-100"
+                disabled={addRowMutation.isPending}
+                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-60 shadow-sm shadow-blue-200"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
                 Add Row
               </button>
             </div>
           </div>
 
-          {/* Secondary Toolbar */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search records..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-8 py-1.5 bg-gray-50 border border-gray-200 text-xs rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-
-              <div className="h-4 w-px bg-gray-200"></div>
-
-              {/* Filter Button */}
-              <div className="relative" ref={filterPanelRef}>
-                <button
-                  onClick={() => { setShowFilterPanel((v) => !v); setShowColumnsPanel(false) }}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition ${
-                    showFilterPanel || activeFilterCount > 0
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  <Filter className="h-3.5 w-3.5" />
-                  Filter
-                  {activeFilterCount > 0 && (
-                    <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                  <ChevronDown className="h-3 w-3 opacity-60" />
+          {/* Row 2: search + filter controls */}
+          <div className="flex items-center gap-2 px-5 pb-2.5">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 pr-7 py-1.5 w-44 bg-gray-50 border border-gray-200 text-xs rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all placeholder-gray-400"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                  <X className="h-3 w-3" />
                 </button>
+              )}
+            </div>
 
-                {showFilterPanel && (
-                  <div className="absolute top-full left-0 mt-2 w-96 bg-white rounded-xl border border-gray-200 shadow-xl z-50 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-900">Filters</span>
-                      {filters.length > 0 && (
-                        <button onClick={() => setFilters([])} className="text-xs text-red-500 hover:text-red-700 font-medium">
-                          Clear all
-                        </button>
-                      )}
+            <div className="h-4 w-px bg-gray-200" />
+
+            {/* Filter */}
+            <div className="relative" ref={filterPanelRef}>
+              <button
+                onClick={() => { setShowFilterPanel((v) => !v); setShowColumnsPanel(false) }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  showFilterPanel || activeFilterCount > 0
+                    ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                    : 'text-gray-500 hover:bg-gray-100 border border-transparent'
+                }`}
+              >
+                <Filter className="h-3.5 w-3.5" />
+                Filter
+                {activeFilterCount > 0 && (
+                  <span className="bg-violet-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                    {activeFilterCount}
+                  </span>
+                )}
+                <ChevronDown className={`h-3 w-3 opacity-50 transition-transform ${showFilterPanel ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showFilterPanel && (
+                <div className="absolute top-full left-0 mt-2 w-[420px] bg-white rounded-2xl border border-gray-200 shadow-2xl shadow-gray-200/60 z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/80">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-3.5 w-3.5 text-violet-600" />
+                      <span className="text-sm font-bold text-gray-900">Filter rows</span>
                     </div>
+                    {filters.length > 0 && (
+                      <button onClick={() => setFilters([])} className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors">
+                        Clear all
+                      </button>
+                    )}
+                  </div>
 
+                  <div className="p-4">
                     {filters.length === 0 ? (
-                      <p className="text-xs text-gray-400 mb-3">No filters applied. Add one below.</p>
+                      <div className="flex flex-col items-center py-6 gap-2">
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                          <Filter className="h-4 w-4 text-gray-300" />
+                        </div>
+                        <p className="text-xs text-gray-400 font-medium">No filters yet</p>
+                      </div>
                     ) : (
                       <div className="space-y-2 mb-3">
                         {filters.map((f, i) => (
-                          <div key={i} className="flex items-center gap-2">
+                          <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-xl">
+                            {i > 0 && <span className="text-[10px] font-bold text-gray-400 w-6 flex-shrink-0">AND</span>}
                             <select
                               value={f.column}
                               onChange={(e) => updateFilter(i, { column: e.target.value })}
-                              className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+                              className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-400/30 font-medium"
                             >
-                              {cols.map((c: any) => (
-                                <option key={c.id} value={c.name}>{c.name}</option>
-                              ))}
+                              {cols.map((c: any) => <option key={c.id} value={c.name}>{c.name}</option>)}
                             </select>
                             <select
                               value={f.operator}
                               onChange={(e) => updateFilter(i, { operator: e.target.value as FilterRule['operator'] })}
-                              className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+                              className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-400/30"
                             >
                               <option value="contains">contains</option>
                               <option value="equals">equals</option>
@@ -318,11 +324,11 @@ export default function TablePage() {
                                 type="text"
                                 value={f.value}
                                 onChange={(e) => updateFilter(i, { value: e.target.value })}
-                                placeholder="Value"
-                                className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+                                placeholder="Value…"
+                                className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-400/30"
                               />
                             )}
-                            <button onClick={() => removeFilter(i)} className="text-gray-400 hover:text-red-500 transition">
+                            <button onClick={() => removeFilter(i)} className="flex-shrink-0 p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
                               <X className="h-3.5 w-3.5" />
                             </button>
                           </div>
@@ -333,115 +339,116 @@ export default function TablePage() {
                     <button
                       onClick={addFilter}
                       disabled={cols.length === 0}
-                      className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition disabled:opacity-40"
+                      className="flex items-center gap-1.5 text-xs font-bold text-violet-600 hover:text-violet-800 transition-colors disabled:opacity-40"
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      Add filter
+                      Add filter rule
                     </button>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* Columns visibility */}
+            <div className="relative" ref={columnsPanelRef}>
+              <button
+                onClick={() => { setShowColumnsPanel((v) => !v); setShowFilterPanel(false) }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  showColumnsPanel || hiddenColumnCount > 0
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                    : 'text-gray-500 hover:bg-gray-100 border border-transparent'
+                }`}
+              >
+                <Columns className="h-3.5 w-3.5" />
+                Fields
+                {hiddenColumnCount > 0 && (
+                  <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                    {hiddenColumnCount} hidden
+                  </span>
                 )}
-              </div>
+                <ChevronDown className={`h-3 w-3 opacity-50 transition-transform ${showColumnsPanel ? 'rotate-180' : ''}`} />
+              </button>
 
-              {/* Columns Button */}
-              <div className="relative" ref={columnsPanelRef}>
-                <button
-                  onClick={() => { setShowColumnsPanel((v) => !v); setShowFilterPanel(false) }}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg transition ${
-                    showColumnsPanel || hiddenColumnCount > 0
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  <Columns className="h-3.5 w-3.5" />
-                  Columns
-                  {hiddenColumnCount > 0 && (
-                    <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                      {hiddenColumnCount}
-                    </span>
-                  )}
-                  <ChevronDown className="h-3 w-3 opacity-60" />
-                </button>
-
-                {showColumnsPanel && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl z-50 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-bold text-gray-900">Visible Fields</span>
-                      {hiddenColumnCount > 0 && (
-                        <button
-                          onClick={() => setColumnVisibility({})}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          Show all
-                        </button>
-                      )}
+              {showColumnsPanel && (
+                <div className="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl border border-gray-200 shadow-2xl shadow-gray-200/60 z-50 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/80">
+                    <div className="flex items-center gap-2">
+                      <Columns className="h-3.5 w-3.5 text-blue-600" />
+                      <span className="text-sm font-bold text-gray-900">Visible fields</span>
                     </div>
-
-                    {cols.length === 0 ? (
-                      <p className="text-xs text-gray-400">No columns yet.</p>
-                    ) : (
-                      <div className="space-y-1">
-                        {cols.map((col: any) => {
-                          const isVisible = columnVisibility[col.name] !== false
-                          return (
-                            <button
-                              key={col.id}
-                              onClick={() => toggleColumnVisibility(col.name)}
-                              className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-50 transition group"
-                            >
-                              <span className={`text-xs font-medium ${isVisible ? 'text-gray-800' : 'text-gray-400'}`}>
-                                {col.name}
-                              </span>
-                              {isVisible
-                                ? <Eye className="h-3.5 w-3.5 text-blue-500" />
-                                : <EyeOff className="h-3.5 w-3.5 text-gray-300" />
-                              }
-                            </button>
-                          )
-                        })}
-                      </div>
+                    {hiddenColumnCount > 0 && (
+                      <button onClick={() => setColumnVisibility({})} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                        Show all
+                      </button>
                     )}
                   </div>
-                )}
-              </div>
+                  <div className="p-2">
+                    {cols.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-4">No fields yet</p>
+                    ) : (
+                      cols.map((col: any) => {
+                        const isVisible = columnVisibility[col.name] !== false
+                        return (
+                          <button
+                            key={col.id}
+                            onClick={() => toggleColumnVisibility(col.name)}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors group"
+                          >
+                            <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all flex-shrink-0 ${
+                              isVisible ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
+                            }`}>
+                              {isVisible && <CheckCircle2 className="h-3 w-3 text-white" />}
+                            </div>
+                            <span className={`text-xs font-medium flex-1 text-left transition-colors ${isVisible ? 'text-gray-800' : 'text-gray-400'}`}>
+                              {col.name}
+                            </span>
+                            {isVisible ? <Eye className="h-3.5 w-3.5 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" /> : <EyeOff className="h-3.5 w-3.5 text-gray-300" />}
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center gap-3 text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-              {(searchQuery || activeFilterCount > 0) && (
-                <span className="text-blue-500 normal-case font-semibold">
-                  Filtered
-                </span>
-              )}
-              Last saved: Just now
-            </div>
+            {/* Active indicators */}
+            {(searchQuery || activeFilterCount > 0) && (
+              <div className="flex items-center gap-1.5 ml-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-pulse" />
+                <span className="text-[11px] font-semibold text-violet-600">Filtered view</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Data Grid Area */}
-        <div className="flex-1 overflow-hidden relative bg-[#FBFBFC]">
-          <div className="absolute inset-0 p-4">
-            <div className="h-full w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              {table && rowsData && (
-                <DataGrid
-                  tableId={tableId}
-                  columns={cols}
-                  rows={rowsData.rows || []}
-                  searchQuery={searchQuery}
-                  filters={filters}
-                  columnVisibility={columnVisibility}
-                  onCellUpdate={(rowId, columnName, value) => updateCellMutation.mutate({ rowId, columnName, value })}
-                  onAddRow={() => addRowMutation.mutate()}
-                  onAddColumn={() => addColumnMutation.mutate()}
-                  onDeleteRow={(rowId) => deleteRowMutation.mutate(rowId)}
-                />
-              )}
+        {/* ── Grid Area ── */}
+        <div className="flex-1 overflow-hidden">
+          {table && rowsData ? (
+            <DataGrid
+              tableId={tableId}
+              columns={cols}
+              rows={rowsData.rows || []}
+              searchQuery={searchQuery}
+              filters={filters}
+              columnVisibility={columnVisibility}
+              onCellUpdate={(rowId, columnName, value) => updateCellMutation.mutate({ rowId, columnName, value })}
+              onAddRow={() => addRowMutation.mutate()}
+              onAddColumn={() => addColumnMutation.mutate()}
+              onDeleteRow={(rowId) => deleteRowMutation.mutate(rowId)}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
-          </div>
+          )}
         </div>
       </div>
 
       {showImportModal && (
         <ImportModal
           tableId={tableId}
+          columns={cols}
           onClose={() => setShowImportModal(false)}
           onSuccess={() => {
             setShowImportModal(false)
@@ -455,18 +462,22 @@ export default function TablePage() {
 
 function ImportModal({
   tableId,
+  columns,
   onClose,
   onSuccess,
 }: {
   tableId: string
+  columns: any[]
   onClose: () => void
   onSuccess: () => void
 }) {
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [dragOver, setDragOver] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!file) return
     setError('')
@@ -474,10 +485,7 @@ function ImportModal({
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await fetch(`/api/tables/${tableId}/import`, {
-        method: 'POST',
-        body: formData,
-      })
+      const res = await fetch(`/api/tables/${tableId}/import`, { method: 'POST', body: formData })
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || 'Failed to import CSV')
@@ -490,51 +498,139 @@ function ImportModal({
     }
   }
 
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    const dropped = e.dataTransfer.files[0]
+    if (dropped?.name.endsWith('.csv')) setFile(dropped)
+  }
+
+  const fileSizeKB = file ? (file.size / 1024).toFixed(1) : null
+
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Import CSV</h2>
-        <p className="text-gray-500 mb-8">Upload your data into this table instantly.</p>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm">
-              {error}
+    <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Upload className="h-4.5 w-4.5 text-blue-600" />
             </div>
-          )}
-
-          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-blue-50/30 hover:border-blue-200 transition-all cursor-pointer relative group">
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="absolute inset-0 opacity-0 cursor-pointer z-10"
-            />
-            <div className="flex flex-col items-center">
-              <div className="bg-white p-3 rounded-xl shadow-sm mb-4 group-hover:scale-110 transition-transform">
-                <Upload className="h-6 w-6 text-blue-600" />
-              </div>
-              <p className="text-sm font-bold text-gray-700">
-                {file ? file.name : 'Click or drag CSV file'}
-              </p>
-              <p className="text-xs text-gray-400 mt-2">Headers must match column names</p>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Import CSV</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Upload data into this table</p>
             </div>
           </div>
+          <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-          <div className="flex gap-4 pt-4 border-t border-gray-50">
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 space-y-4">
+            {/* Error */}
+            {error && (
+              <div className="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl">
+                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs font-medium text-red-700">{error}</p>
+              </div>
+            )}
+
+            {/* Drop zone */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => inputRef.current?.click()}
+              className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                dragOver
+                  ? 'border-blue-400 bg-blue-50 scale-[1.01]'
+                  : file
+                  ? 'border-green-400 bg-green-50'
+                  : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/40'
+              }`}
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                accept=".csv"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+
+              {file ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                    <CheckCircle2 className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">{file.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">{fileSizeKB} KB · CSV file</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setFile(null) }}
+                    className="text-xs font-semibold text-gray-400 hover:text-gray-700 underline underline-offset-2 transition-colors"
+                  >
+                    Choose a different file
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">
+                      Drop your CSV here, or <span className="text-blue-600">browse</span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">Only .csv files are supported</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Column hint */}
+            {columns.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                <p className="text-xs font-semibold text-amber-800 mb-1.5">Expected columns</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {columns.map((c) => (
+                    <span key={c.id} className="px-2 py-0.5 bg-white border border-amber-200 text-amber-700 text-[11px] font-medium rounded-md">
+                      {c.name}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[11px] text-amber-600 mt-2">CSV headers must match these column names exactly.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/60">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition"
+              className="flex-1 px-4 py-2.5 border border-gray-200 text-sm font-bold text-gray-600 rounded-xl hover:bg-gray-50 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !file}
-              className="flex-1 bg-blue-600 text-white px-6 py-3 font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-100 disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 shadow-sm shadow-blue-200"
             >
-              {loading ? 'Importing...' : 'Import Data'}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Importing…
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  Import Data
+                </>
+              )}
             </button>
           </div>
         </form>
