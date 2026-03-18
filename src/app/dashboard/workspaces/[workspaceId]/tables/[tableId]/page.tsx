@@ -435,6 +435,7 @@ export default function TablePage() {
               onCellUpdate={(rowId, columnName, value) => updateCellMutation.mutate({ rowId, columnName, value })}
               onAddRow={() => addRowMutation.mutate()}
               onAddColumn={() => addColumnMutation.mutate()}
+              onColumnChanged={() => queryClient.invalidateQueries({ queryKey: ['table', tableId] })}
               onDeleteRow={(rowId) => deleteRowMutation.mutate(rowId)}
             />
           ) : (

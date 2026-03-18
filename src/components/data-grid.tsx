@@ -8,7 +8,7 @@ import {
   ColumnDef,
   VisibilityState,
 } from '@tanstack/react-table'
-import { Plus, Trash2, MoreHorizontal, Copy, FileText, Type } from 'lucide-react'
+import { Plus, Trash2, MoreHorizontal, Copy, FileText, Type, Pencil, ChevronDown } from 'lucide-react'
 
 interface Column {
   id: string
@@ -39,7 +39,107 @@ interface DataGridProps {
   onCellUpdate: (rowId: string, columnName: string, value: string) => void
   onAddRow: () => void
   onAddColumn: () => void
+  onColumnChanged?: () => void
   onDeleteRow: (rowId: string) => void
+}
+
+function ColumnHeaderMenu({
+  col,
+  tableId,
+  onChanged,
+}: {
+  col: Column
+  tableId: string
+  onChanged: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [renaming, setRenaming] = useState(false)
+  const [newName, setNewName] = useState(col.name)
+  const [loading, setLoading] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  async function handleRename(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newName.trim() || newName === col.name) { setRenaming(false); return }
+    setLoading(true)
+    await fetch(`/api/tables/${tableId}/columns/${col.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName.trim() }),
+    })
+    setLoading(false)
+    setRenaming(false)
+    onChanged()
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Delete column "${col.name}"? All data in this column will be lost.`)) return
+    setLoading(true)
+    await fetch(`/api/tables/${tableId}/columns/${col.id}`, { method: 'DELETE' })
+    setLoading(false)
+    onChanged()
+  }
+
+  if (renaming) {
+    return (
+      <form onSubmit={handleRename} className="flex items-center gap-1 w-full" onClick={(e) => e.stopPropagation()}>
+        <input
+          autoFocus
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="flex-1 min-w-0 px-1.5 py-0.5 text-xs border border-blue-400 rounded focus:outline-none bg-white"
+        />
+        <button type="submit" disabled={loading} className="text-[10px] font-bold text-blue-600 hover:text-blue-800 px-1 whitespace-nowrap">
+          {loading ? '…' : 'OK'}
+        </button>
+        <button type="button" onClick={() => setRenaming(false)} className="text-[10px] font-bold text-gray-400 hover:text-gray-600 px-1">
+          ✕
+        </button>
+      </form>
+    )
+  }
+
+  return (
+    <div ref={ref} className="relative flex items-center gap-1 w-full group/header">
+      <Type className="h-3 w-3 text-gray-400 flex-shrink-0" />
+      <span className="flex-1 truncate">{col.name}</span>
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
+        className="opacity-0 group-hover/header:opacity-100 transition p-0.5 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-700 flex-shrink-0"
+      >
+        <ChevronDown className="h-3 w-3" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+          <button
+            onClick={(e) => { e.stopPropagation(); setRenaming(true); setNewName(col.name); setOpen(false) }}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+          >
+            <Pencil className="h-3.5 w-3.5 text-gray-400" />
+            Rename field
+          </button>
+          <div className="h-px bg-gray-100 mx-2" />
+          <button
+            onClick={(e) => { e.stopPropagation(); handleDelete(); setOpen(false) }}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-red-600 hover:bg-red-50 transition"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete field
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 function RowActionsMenu({ onDelete, onDuplicate }: { onDelete: () => void; onDuplicate: () => void }) {
@@ -95,6 +195,7 @@ export function DataGrid({
   onCellUpdate,
   onAddRow,
   onAddColumn,
+  onColumnChanged,
   onDeleteRow,
 }: DataGridProps) {
   const [editingCell, setEditingCell] = useState<{ rowId: string; columnName: string } | null>(null)
@@ -159,10 +260,7 @@ export function DataGrid({
         id: col.name,
         accessorKey: col.name,
         header: () => (
-          <div className="flex items-center gap-1.5 w-full">
-            <Type className="h-3 w-3 text-gray-400 flex-shrink-0" />
-            <span className="truncate">{col.name}</span>
-          </div>
+          <ColumnHeaderMenu col={col} tableId={tableId} onChanged={onColumnChanged ?? onAddColumn} />
         ),
         cell: ({ row }: any) => {
           const rowId = row.original.id
