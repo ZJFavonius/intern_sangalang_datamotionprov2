@@ -195,6 +195,18 @@ export default function HomePage() {
                   <span style={{ fontSize: 10, color: '#5a7a5a', fontWeight: 600 }}>248 rows</span>
                   <span style={{ fontSize: 10, color: '#9aaa9a' }}>Double-click a cell to edit</span>
                 </div>
+                {/* Feature badges */}
+                <div style={{ borderTop: '1px solid #e5e7eb', padding: '8px 12px', display: 'flex', gap: 8, background: '#fff', flexWrap: 'wrap' }}>
+                  {[
+                    { icon: '⚡', label: 'Real-time Collaboration' },
+                    { icon: '✏️', label: 'Editable Cells' },
+                    { icon: '📊', label: 'CSV & XLSX Import/Export' },
+                  ].map(b => (
+                    <span key={b.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#1d4ed8', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '3px 8px' }}>
+                      {b.icon} {b.label}
+                    </span>
+                  ))}
+                </div>
               </div>
 
             </div>
