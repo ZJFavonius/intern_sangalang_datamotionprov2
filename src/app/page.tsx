@@ -96,8 +96,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-[9px] font-bold">JS</div>
-                  <span className="text-[10px] font-semibold text-gray-700">Jane Smith</span>
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-[9px] font-bold">JM</div>
+                  <span className="text-[10px] font-semibold text-gray-700">Justine Mae</span>
                   <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </div>
