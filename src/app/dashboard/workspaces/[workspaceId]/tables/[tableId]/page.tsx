@@ -478,6 +478,23 @@ function ImportModal({
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const ACCEPTED = ['.csv', '.xlsx', '.xls']
+
+  function isValidFile(f: File) {
+    return ACCEPTED.some((ext) => f.name.toLowerCase().endsWith(ext))
+  }
+
+  function fileLabel(f: File) {
+    if (f.name.toLowerCase().endsWith('.xlsx') || f.name.toLowerCase().endsWith('.xls')) return 'Excel file'
+    return 'CSV file'
+  }
+
+  function fileColor(f: File | null) {
+    if (!f) return 'gray'
+    if (f.name.toLowerCase().endsWith('.xlsx') || f.name.toLowerCase().endsWith('.xls')) return 'green'
+    return 'blue'
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!file) return
@@ -489,7 +506,7 @@ function ImportModal({
       const res = await fetch(`/api/tables/${tableId}/import`, { method: 'POST', body: formData })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to import CSV')
+        throw new Error(data.error || 'Failed to import file')
       }
       onSuccess()
     } catch (err: any) {
@@ -503,10 +520,12 @@ function ImportModal({
     e.preventDefault()
     setDragOver(false)
     const dropped = e.dataTransfer.files[0]
-    if (dropped?.name.endsWith('.csv')) setFile(dropped)
+    if (dropped && isValidFile(dropped)) setFile(dropped)
+    else if (dropped) setError('Only .csv, .xlsx, and .xls files are supported.')
   }
 
   const fileSizeKB = file ? (file.size / 1024).toFixed(1) : null
+  const color = fileColor(file)
 
   return (
     <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -515,11 +534,11 @@ function ImportModal({
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Upload className="h-4.5 w-4.5 text-blue-600" />
+              <Upload className="h-[18px] w-[18px] text-blue-600" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-900">Import CSV</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Upload data into this table</p>
+              <h2 className="text-base font-bold text-gray-900">Import File</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Upload a CSV or Excel file into this table</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all">
@@ -529,6 +548,19 @@ function ImportModal({
 
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-4">
+            {/* Format tabs */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-gray-600">
+                <span className="w-2 h-2 rounded-sm bg-blue-500 inline-block" />
+                CSV
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-gray-600">
+                <span className="w-2 h-2 rounded-sm bg-green-600 inline-block" />
+                Excel (.xlsx / .xls)
+              </div>
+              <span className="text-xs text-gray-400 ml-1">supported</span>
+            </div>
+
             {/* Error */}
             {error && (
               <div className="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl">
@@ -547,30 +579,44 @@ function ImportModal({
                 dragOver
                   ? 'border-blue-400 bg-blue-50 scale-[1.01]'
                   : file
-                  ? 'border-green-400 bg-green-50'
+                  ? color === 'green'
+                    ? 'border-green-400 bg-green-50'
+                    : 'border-blue-400 bg-blue-50'
                   : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/40'
               }`}
             >
               <input
                 ref={inputRef}
                 type="file"
-                accept=".csv"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                accept=".csv,.xlsx,.xls"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f && isValidFile(f)) { setFile(f); setError('') }
+                  else if (f) setError('Only .csv, .xlsx, and .xls files are supported.')
+                }}
                 className="hidden"
               />
 
               {file ? (
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6 text-green-600" />
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color === 'green' ? 'bg-green-100' : 'bg-blue-100'}`}>
+                    {color === 'green' ? (
+                      /* Excel icon */
+                      <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none">
+                        <rect x="2" y="3" width="20" height="18" rx="2" fill="#217346" />
+                        <path d="M7 8l3 4-3 4M13 8h4M13 12h4M13 16h4" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    ) : (
+                      <CheckCircle2 className="h-6 w-6 text-blue-600" />
+                    )}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-gray-900">{file.name}</p>
-                    <p className="text-xs text-gray-500 mt-1">{fileSizeKB} KB · CSV file</p>
+                    <p className="text-xs text-gray-500 mt-1">{fileSizeKB} KB · {fileLabel(file)}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setFile(null) }}
+                    onClick={(e) => { e.stopPropagation(); setFile(null); setError('') }}
                     className="text-xs font-semibold text-gray-400 hover:text-gray-700 underline underline-offset-2 transition-colors"
                   >
                     Choose a different file
@@ -578,14 +624,23 @@ function ImportModal({
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-gray-400" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <span className="text-gray-300 text-lg font-light">or</span>
+                    <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
+                      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
+                        <rect x="2" y="3" width="20" height="18" rx="2" fill="#217346" />
+                        <path d="M7 8l3 4-3 4M13 8h4M13 12h4M13 16h4" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-700">
-                      Drop your CSV here, or <span className="text-blue-600">browse</span>
+                      Drop your file here, or <span className="text-blue-600">browse</span>
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">Only .csv files are supported</p>
+                    <p className="text-xs text-gray-400 mt-1">CSV, Excel (.xlsx, .xls) supported</p>
                   </div>
                 </div>
               )}
@@ -602,7 +657,7 @@ function ImportModal({
                     </span>
                   ))}
                 </div>
-                <p className="text-[11px] text-amber-600 mt-2">CSV headers must match these column names exactly.</p>
+                <p className="text-[11px] text-amber-600 mt-2">File headers must match these column names exactly.</p>
               </div>
             )}
           </div>

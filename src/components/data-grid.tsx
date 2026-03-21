@@ -271,7 +271,15 @@ export function DataGrid({
 
           return (
             <div
-              className="min-h-[34px] flex items-center relative"
+              style={{
+                minHeight: 26,
+                display: 'flex',
+                alignItems: 'center',
+                position: 'relative',
+                outline: isSelected && !isEditing ? '2px solid #217346' : 'none',
+                outlineOffset: -2,
+                zIndex: isSelected ? 1 : 'auto',
+              }}
               onClick={() => setSelectedRow(rowId)}
               onDoubleClick={() => {
                 setEditingCell({ rowId, columnName })
@@ -293,13 +301,32 @@ export function DataGrid({
                     else if (e.key === 'Escape') setEditingCell(null)
                   }}
                   autoFocus
-                  className="absolute inset-0 w-full h-full px-3 py-1 border-2 border-blue-500 bg-white rounded-none focus:outline-none text-sm z-10 shadow-lg"
+                  style={{
+                    position: 'absolute', inset: 0,
+                    width: '100%', height: '100%',
+                    padding: '2px 8px',
+                    border: '2px solid #217346',
+                    background: '#fff',
+                    outline: 'none',
+                    fontSize: 13,
+                    fontFamily: 'Calibri, "Segoe UI", Arial, sans-serif',
+                    zIndex: 10,
+                    boxShadow: '0 2px 8px rgba(33,115,70,0.15)',
+                  }}
                 />
               ) : (
-                <div className={`px-3 py-1.5 w-full text-sm transition-colors leading-tight ${
-                  isSelected && !isEditing ? 'text-gray-900' : 'text-gray-700'
-                } ${value === '' ? 'text-gray-300' : ''}`}>
-                  {value !== '' ? value : <span className="italic text-[11px]">—</span>}
+                <div style={{
+                  padding: '3px 8px',
+                  width: '100%',
+                  fontSize: 13,
+                  color: value === '' ? '#bbb' : '#1a1a1a',
+                  lineHeight: 1.4,
+                  fontStyle: value === '' ? 'italic' : 'normal',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>
+                  {value !== '' ? value : ''}
                 </div>
               )}
             </div>
@@ -327,40 +354,108 @@ export function DataGrid({
     state: { columnVisibility },
   })
 
+  const colLetters = columns
+    .sort((a, b) => a.order - b.order)
+    .map((_, i) => {
+      let letter = ''
+      let n = i
+      do {
+        letter = String.fromCharCode(65 + (n % 26)) + letter
+        n = Math.floor(n / 26) - 1
+      } while (n >= 0)
+      return letter
+    })
+
   return (
-    <div className="flex flex-col h-full bg-white" onClick={(e) => {
+    <div className="flex flex-col h-full" style={{ background: '#fff' }} onClick={(e) => {
       if ((e.target as HTMLElement).closest('td') === null) setSelectedRow(null)
     }}>
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse">
-          {/* Column Headers */}
+      <div className="flex-1 overflow-auto" style={{ fontFamily: 'Calibri, "Segoe UI", Arial, sans-serif' }}>
+        <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+          {/* Excel-style Column Headers */}
           <thead className="sticky top-0 z-20">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="bg-gray-50 border-b-2 border-gray-200">
-                {headerGroup.headers.map((header, i) => (
-                  <th
-                    key={header.id}
-                    className={`
-                      px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 tracking-wide
-                      border-r border-gray-200 last:border-r-0 select-none
-                      ${i === 0 ? 'text-center w-12' : ''}
-                      ${header.id === 'actions' ? 'w-10' : ''}
-                    `}
-                    style={{ minWidth: header.id === 'row-number' ? 48 : header.id === 'actions' ? 40 : 160 }}
-                  >
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-                {/* Add column button in header */}
-                <th className="px-3 py-2.5 w-32 border-r border-gray-200">
+              <tr key={headerGroup.id} style={{ background: '#f0f4f0' }}>
+                {/* Row number corner cell */}
+                <th
+                  style={{
+                    width: 48, minWidth: 48,
+                    borderRight: '1px solid #b7c6b7',
+                    borderBottom: '2px solid #217346',
+                    background: '#e8f0e8',
+                    padding: '0 4px',
+                    userSelect: 'none',
+                  }}
+                />
+                {/* Data columns */}
+                {headerGroup.headers
+                  .filter((h) => h.id !== 'row-number' && h.id !== 'actions')
+                  .map((header, i) => (
+                    <th
+                      key={header.id}
+                      style={{
+                        minWidth: 160,
+                        borderRight: '1px solid #b7c6b7',
+                        borderBottom: '2px solid #217346',
+                        background: '#f0f4f0',
+                        padding: 0,
+                        userSelect: 'none',
+                        verticalAlign: 'bottom',
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                        {/* Column letter */}
+                        <div style={{
+                          textAlign: 'center',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: '#217346',
+                          paddingTop: 3,
+                          paddingBottom: 1,
+                          letterSpacing: '0.05em',
+                          lineHeight: 1,
+                        }}>
+                          {colLetters[i]}
+                        </div>
+                        {/* Column name with menu */}
+                        <div style={{ padding: '2px 8px 6px' }}>
+                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        </div>
+                      </div>
+                    </th>
+                  ))}
+                {/* Add column */}
+                <th style={{
+                  width: 120,
+                  borderRight: '1px solid #b7c6b7',
+                  borderBottom: '2px solid #217346',
+                  background: '#f0f4f0',
+                  padding: '0 12px',
+                  verticalAlign: 'bottom',
+                }}>
                   <button
                     onClick={onAddColumn}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 hover:text-blue-600 transition-colors whitespace-nowrap"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      fontSize: 11, fontWeight: 600, color: '#888',
+                      paddingBottom: 6,
+                      cursor: 'pointer',
+                      background: 'none', border: 'none',
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.color = '#217346')}
+                    onMouseOut={(e) => (e.currentTarget.style.color = '#888')}
                   >
                     <Plus className="h-3 w-3" />
                     Add field
                   </button>
                 </th>
+                {/* Actions header */}
+                <th style={{
+                  width: 40,
+                  borderBottom: '2px solid #217346',
+                  background: '#f0f4f0',
+                }} />
               </tr>
             ))}
           </thead>
@@ -369,7 +464,7 @@ export function DataGrid({
           <tbody>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={tableColumns.length + 1} className="text-center py-20">
+                <td colSpan={tableColumns.length + 2} style={{ textAlign: 'center', padding: '80px 0' }}>
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                       <FileText className="h-5 w-5 text-gray-300" />
@@ -385,38 +480,76 @@ export function DataGrid({
                 return (
                   <tr
                     key={row.id}
-                    className={`group border-b border-gray-100 transition-colors cursor-default ${
-                      isSelected
-                        ? 'bg-blue-50/60'
-                        : idx % 2 === 0
-                        ? 'bg-white hover:bg-blue-50/30'
-                        : 'bg-gray-50/40 hover:bg-blue-50/30'
-                    }`}
+                    style={{
+                      background: isSelected ? '#e8f3ff' : idx % 2 === 0 ? '#fff' : '#f7fbf7',
+                      borderBottom: '1px solid #d4e0d4',
+                      cursor: 'default',
+                    }}
                     onClick={() => setSelectedRow(row.original.id)}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className={`border-r border-gray-100 last:border-r-0 relative ${
-                          isSelected ? 'border-blue-100' : ''
-                        }`}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                    <td className="border-r-0 w-10 px-1">
+                    {/* Row number cell */}
+                    <td style={{
+                      width: 48, minWidth: 48,
+                      textAlign: 'center',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: '#6a8a6a',
+                      borderRight: '2px solid #b7c6b7',
+                      background: isSelected ? '#d6e9f5' : '#e8f0e8',
+                      userSelect: 'none',
+                      padding: '4px 0',
+                      fontFamily: 'Consolas, monospace',
+                    }}>
+                      {idx + 1}
                     </td>
+                    {/* Data cells */}
+                    {row.getVisibleCells()
+                      .filter((cell) => cell.column.id !== 'row-number' && cell.column.id !== 'actions')
+                      .map((cell) => (
+                        <td
+                          key={cell.id}
+                          style={{
+                            borderRight: '1px solid #d4e0d4',
+                            borderLeft: 'none',
+                            position: 'relative',
+                            padding: 0,
+                          }}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    {/* Add field placeholder cell */}
+                    <td style={{ borderRight: '1px solid #d4e0d4', background: isSelected ? '#e8f3ff' : idx % 2 === 0 ? '#fff' : '#f7fbf7' }} />
+                    {/* Actions cell */}
+                    {row.getVisibleCells()
+                      .filter((cell) => cell.column.id === 'actions')
+                      .map((cell) => (
+                        <td key={cell.id} style={{ width: 40, padding: '0 4px' }}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
                   </tr>
                 )
               })
             )}
 
             {/* Add row */}
-            <tr className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors">
-              <td colSpan={tableColumns.length + 1} className="px-3 py-2">
+            <tr style={{ borderBottom: '1px solid #d4e0d4' }}>
+              <td style={{
+                width: 48, minWidth: 48,
+                background: '#e8f0e8',
+                borderRight: '2px solid #b7c6b7',
+              }} />
+              <td colSpan={tableColumns.length + 1} style={{ padding: '6px 12px' }}>
                 <button
                   onClick={onAddRow}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-blue-600 transition-colors"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: 12, fontWeight: 600, color: '#888',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.color = '#217346')}
+                  onMouseOut={(e) => (e.currentTarget.style.color = '#888')}
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add record
@@ -427,13 +560,20 @@ export function DataGrid({
         </table>
       </div>
 
-      {/* Footer stats */}
-      <div className="border-t border-gray-100 px-4 py-2 flex items-center justify-between bg-gray-50/60">
-        <span className="text-[11px] text-gray-400 font-medium">
-          {table.getRowModel().rows.length} record{table.getRowModel().rows.length !== 1 ? 's' : ''}
-          {filteredRows.length !== rows.length && ` (filtered from ${rows.length})`}
+      {/* Footer — Excel style status bar */}
+      <div style={{
+        borderTop: '1px solid #d4e0d4',
+        padding: '4px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: '#f0f4f0',
+      }}>
+        <span style={{ fontSize: 11, color: '#5a7a5a', fontWeight: 600 }}>
+          {table.getRowModel().rows.length.toLocaleString()} row{table.getRowModel().rows.length !== 1 ? 's' : ''}
+          {filteredRows.length !== rows.length && ` (filtered from ${rows.length.toLocaleString()})`}
         </span>
-        <span className="text-[11px] text-gray-300 font-medium">
+        <span style={{ fontSize: 11, color: '#9aaa9a' }}>
           Double-click a cell to edit
         </span>
       </div>

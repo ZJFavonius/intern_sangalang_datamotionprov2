@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
 
 export async function POST(
   req: Request,
@@ -21,9 +22,7 @@ export async function POST(
         workspace: {
           include: {
             members: {
-              where: {
-                userId: session.user.id,
-              },
+              where: { userId: session.user.id },
             },
           },
         },
@@ -42,17 +41,38 @@ export async function POST(
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    const text = await file.text()
-    const parsed = Papa.parse(text, {
-      header: true,
-      skipEmptyLines: true,
-    })
+    let parsedRows: Record<string, string>[] = []
 
-    if (parsed.errors.length > 0) {
-      return NextResponse.json(
-        { error: 'CSV parsing error', details: parsed.errors },
-        { status: 400 }
-      )
+    const fileName = file.name.toLowerCase()
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
+
+    if (isExcel) {
+      const arrayBuffer = await file.arrayBuffer()
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+      const sheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[sheetName]
+      const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet, {
+        defval: '',
+        raw: false,
+      })
+      parsedRows = jsonData
+    } else {
+      const text = await file.text()
+      const parsed = Papa.parse<Record<string, string>>(text, {
+        header: true,
+        skipEmptyLines: true,
+      })
+      if (parsed.errors.length > 0) {
+        return NextResponse.json(
+          { error: 'CSV parsing error', details: parsed.errors },
+          { status: 400 }
+        )
+      }
+      parsedRows = parsed.data
+    }
+
+    if (parsedRows.length === 0) {
+      return NextResponse.json({ error: 'File contains no data rows' }, { status: 400 })
     }
 
     const maxOrder = await prisma.row.findFirst({
@@ -63,29 +83,20 @@ export async function POST(
 
     let currentOrder = (maxOrder?.order ?? -1) + 1
 
-    const columnMap = new Map(table.columns.map((col) => [col.name, col.id]))
-
-    const rowsToCreate = parsed.data.map((rowData: any) => {
+    const rowsToCreate = parsedRows.map((rowData: Record<string, string>) => {
       const cells = table.columns.map((column) => ({
         columnId: column.id,
-        value: rowData[column.name] || null,
+        value: rowData[column.name] !== undefined ? String(rowData[column.name]) : null,
       }))
-
       return {
         tableId: params.tableId,
         order: currentOrder++,
-        cells: {
-          create: cells,
-        },
+        cells: { create: cells },
       }
     })
 
     await prisma.$transaction(
-      rowsToCreate.map((rowData) =>
-        prisma.row.create({
-          data: rowData,
-        })
-      )
+      rowsToCreate.map((rowData) => prisma.row.create({ data: rowData }))
     )
 
     return NextResponse.json({
@@ -94,9 +105,6 @@ export async function POST(
     })
   } catch (error) {
     console.error('Import error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
