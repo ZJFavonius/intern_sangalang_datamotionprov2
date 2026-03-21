@@ -2,7 +2,7 @@
 
 import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useRef, useState, useEffect } from 'react'
 import { Database, LayoutDashboard, CreditCard, LogOut, User, ChevronDown, Settings } from 'lucide-react'
 
@@ -24,6 +24,12 @@ function ProfileDropdown() {
   const { data: session } = useSession()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false })
+    router.push('/')
+  }
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -91,7 +97,7 @@ function ProfileDropdown() {
 
           <div className="p-1.5">
             <button
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={handleSignOut}
               className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="h-4 w-4" />
