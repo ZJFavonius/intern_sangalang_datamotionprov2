@@ -8,7 +8,7 @@ import {
   ColumnDef,
   VisibilityState,
 } from '@tanstack/react-table'
-import { Plus, Trash2, MoreHorizontal, Copy, FileText, Type, Pencil, ChevronDown } from 'lucide-react'
+import { Plus, Trash2, Copy, FileText, Type, Pencil, ChevronDown } from 'lucide-react'
 
 interface Column {
   id: string
@@ -142,46 +142,85 @@ function ColumnHeaderMenu({
   )
 }
 
-function RowActionsMenu({ onDelete, onDuplicate }: { onDelete: () => void; onDuplicate: () => void }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
+function RowNumberCell({
+  rowNum,
+  onDelete,
+  onDuplicate,
+  isSelected,
+}: {
+  rowNum: number
+  onDelete: () => void
+  onDuplicate: () => void
+  isSelected: boolean
+}) {
   return (
-    <div ref={ref} className="relative flex items-center justify-center">
-      <button
-        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
-        className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+    <td
+      style={{
+        width: 48,
+        minWidth: 48,
+        borderRight: '2px solid #b7c6b7',
+        background: isSelected ? '#d6e9f5' : '#e8f0e8',
+        userSelect: 'none',
+        padding: 0,
+        position: 'relative',
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Number label — hidden on hover */}
+      <div
+        className="group-hover:hidden"
+        style={{
+          textAlign: 'center',
+          fontSize: 11,
+          fontWeight: 600,
+          color: '#6a8a6a',
+          padding: '4px 0',
+          fontFamily: 'Consolas, monospace',
+        }}
       >
-        <MoreHorizontal className="h-3.5 w-3.5" />
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-          <button
-            onClick={(e) => { e.stopPropagation(); onDuplicate(); setOpen(false) }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
-          >
-            <Copy className="h-3.5 w-3.5 text-gray-400" />
-            Duplicate row
-          </button>
-          <div className="h-px bg-gray-100 mx-2" />
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); setOpen(false) }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete row
-          </button>
-        </div>
-      )}
-    </div>
+        {rowNum}
+      </div>
+
+      {/* Action buttons — shown on hover */}
+      <div
+        className="hidden group-hover:flex"
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2,
+          padding: '2px 3px',
+        }}
+      >
+        <button
+          onClick={(e) => { e.stopPropagation(); onDuplicate() }}
+          title="Duplicate row"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 20, height: 20, borderRadius: 4,
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            color: '#5a7a5a',
+          }}
+          onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = '#d0e4d0'; (e.currentTarget as HTMLElement).style.color = '#217346' }}
+          onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#5a7a5a' }}
+        >
+          <Copy className="h-3 w-3" />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete() }}
+          title="Delete row"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 20, height: 20, borderRadius: 4,
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            color: '#cc3333',
+          }}
+          onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = '#fde8e8'; (e.currentTarget as HTMLElement).style.color = '#b91c1c' }}
+          onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#cc3333' }}
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      </div>
+    </td>
   )
 }
 
@@ -333,18 +372,6 @@ export function DataGrid({
           )
         },
       })),
-    {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <RowActionsMenu
-          onDelete={() => onDeleteRow(row.original.id)}
-          onDuplicate={() => handleDuplicateRow(row.original)}
-        />
-      ),
-      size: 40,
-      enableHiding: false,
-    },
   ]
 
   const table = useReactTable({
@@ -480,6 +507,7 @@ export function DataGrid({
                 return (
                   <tr
                     key={row.id}
+                    className="group"
                     style={{
                       background: isSelected ? '#e8f3ff' : idx % 2 === 0 ? '#fff' : '#f7fbf7',
                       borderBottom: '1px solid #d4e0d4',
@@ -487,21 +515,13 @@ export function DataGrid({
                     }}
                     onClick={() => setSelectedRow(row.original.id)}
                   >
-                    {/* Row number cell */}
-                    <td style={{
-                      width: 48, minWidth: 48,
-                      textAlign: 'center',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: '#6a8a6a',
-                      borderRight: '2px solid #b7c6b7',
-                      background: isSelected ? '#d6e9f5' : '#e8f0e8',
-                      userSelect: 'none',
-                      padding: '4px 0',
-                      fontFamily: 'Consolas, monospace',
-                    }}>
-                      {idx + 1}
-                    </td>
+                    {/* Row number cell — shows delete/duplicate on hover */}
+                    <RowNumberCell
+                      rowNum={idx + 1}
+                      isSelected={isSelected}
+                      onDelete={() => onDeleteRow(row.original.id)}
+                      onDuplicate={() => handleDuplicateRow(row.original)}
+                    />
                     {/* Data cells */}
                     {row.getVisibleCells()
                       .filter((cell) => cell.column.id !== 'row-number' && cell.column.id !== 'actions')
@@ -520,14 +540,6 @@ export function DataGrid({
                       ))}
                     {/* Add field placeholder cell */}
                     <td style={{ borderRight: '1px solid #d4e0d4', background: isSelected ? '#e8f3ff' : idx % 2 === 0 ? '#fff' : '#f7fbf7' }} />
-                    {/* Actions cell */}
-                    {row.getVisibleCells()
-                      .filter((cell) => cell.column.id === 'actions')
-                      .map((cell) => (
-                        <td key={cell.id} style={{ width: 40, padding: '0 4px' }}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      ))}
                   </tr>
                 )
               })
