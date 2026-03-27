@@ -31,14 +31,22 @@ export async function POST(req: Request) {
       where: { userId: session.user.id },
     })
 
+    if (
+      subscription?.status === 'active' &&
+      subscription.stripeSubscriptionId
+    ) {
+      return NextResponse.json(
+        { error: 'You already have an active subscription. Please manage it from your billing page.' },
+        { status: 409 }
+      )
+    }
+
     let customerId = subscription?.stripeCustomerId
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: session.user.email,
-        metadata: {
-          userId: session.user.id,
-        },
+        email: session.user.email!,
+        metadata: { userId: session.user.id },
       })
       customerId = customer.id
 
@@ -50,9 +58,7 @@ export async function POST(req: Request) {
           plan: 'free',
           status: 'inactive',
         },
-        update: {
-          stripeCustomerId: customerId,
-        },
+        update: { stripeCustomerId: customerId },
       })
     }
 
@@ -60,17 +66,10 @@ export async function POST(req: Request) {
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
-      metadata: {
-        userId: session.user.id,
-      },
+      metadata: { userId: session.user.id },
     })
 
     return NextResponse.json({ url: checkoutSession.url })

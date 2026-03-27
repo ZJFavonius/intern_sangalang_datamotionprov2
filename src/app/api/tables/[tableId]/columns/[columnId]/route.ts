@@ -21,6 +21,7 @@ export async function PATCH(
             workspace: {
               include: { members: { where: { userId: session.user.id } } },
             },
+            columns: true,
           },
         },
       },
@@ -31,14 +32,35 @@ export async function PATCH(
     }
 
     const body = await req.json()
-    const updated = await prisma.column.update({
-      where: { id: params.columnId },
-      data: {
-        ...(body.name !== undefined && { name: body.name }),
-      },
-    })
 
-    return NextResponse.json(updated)
+    if (body.name !== undefined) {
+      const newName = String(body.name).trim()
+
+      if (!newName) {
+        return NextResponse.json({ error: 'Column name cannot be empty' }, { status: 400 })
+      }
+
+      const duplicate = column.table.columns.find(
+        (col) =>
+          col.id !== params.columnId &&
+          col.name.toLowerCase() === newName.toLowerCase()
+      )
+
+      if (duplicate) {
+        return NextResponse.json(
+          { error: `A column named "${newName}" already exists in this table.` },
+          { status: 409 }
+        )
+      }
+
+      const updated = await prisma.column.update({
+        where: { id: params.columnId },
+        data: { name: newName },
+      })
+      return NextResponse.json(updated)
+    }
+
+    return NextResponse.json(column)
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

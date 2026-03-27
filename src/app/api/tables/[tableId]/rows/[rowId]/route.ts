@@ -24,11 +24,7 @@ export async function PUT(
       include: {
         workspace: {
           include: {
-            members: {
-              where: {
-                userId: session.user.id,
-              },
-            },
+            members: { where: { userId: session.user.id } },
           },
         },
         columns: true,
@@ -37,6 +33,12 @@ export async function PUT(
 
     if (!table || table.workspace.members.length === 0) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const row = await prisma.row.findUnique({ where: { id: params.rowId } })
+
+    if (!row || row.tableId !== params.tableId) {
+      return NextResponse.json({ error: 'Row not found in this table' }, { status: 404 })
     }
 
     const body = await req.json()
@@ -49,32 +51,15 @@ export async function PUT(
       if (!columnId) continue
 
       await prisma.cell.upsert({
-        where: {
-          rowId_columnId: {
-            rowId: params.rowId,
-            columnId,
-          },
-        },
-        update: {
-          value,
-        },
-        create: {
-          rowId: params.rowId,
-          columnId,
-          value,
-        },
+        where: { rowId_columnId: { rowId: params.rowId, columnId } },
+        update: { value },
+        create: { rowId: params.rowId, columnId, value },
       })
     }
 
     const updatedRow = await prisma.row.findUnique({
       where: { id: params.rowId },
-      include: {
-        cells: {
-          include: {
-            column: true,
-          },
-        },
-      },
+      include: { cells: { include: { column: true } } },
     })
 
     return NextResponse.json(updatedRow)
@@ -85,11 +70,7 @@ export async function PUT(
         { status: 400 }
       )
     }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -109,11 +90,7 @@ export async function DELETE(
       include: {
         workspace: {
           include: {
-            members: {
-              where: {
-                userId: session.user.id,
-              },
-            },
+            members: { where: { userId: session.user.id } },
           },
         },
       },
@@ -123,15 +100,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await prisma.row.delete({
-      where: { id: params.rowId },
-    })
+    const row = await prisma.row.findUnique({ where: { id: params.rowId } })
+
+    if (!row || row.tableId !== params.tableId) {
+      return NextResponse.json({ error: 'Row not found in this table' }, { status: 404 })
+    }
+
+    await prisma.row.delete({ where: { id: params.rowId } })
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

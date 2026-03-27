@@ -9,10 +9,7 @@ export async function POST(req: Request) {
   const signature = headers().get('stripe-signature')
 
   if (!signature) {
-    return NextResponse.json(
-      { error: 'No signature provided' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'No signature provided' }, { status: 400 })
   }
 
   let event: Stripe.Event
@@ -25,10 +22,7 @@ export async function POST(req: Request) {
     )
   } catch (error) {
     console.error('Webhook signature verification failed:', error)
-    return NextResponse.json(
-      { error: 'Invalid signature' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
   try {
@@ -37,27 +31,34 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.metadata?.userId
 
-        if (!userId) {
-          throw new Error('No userId in metadata')
-        }
+        if (!userId || !session.subscription) break
 
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         )
 
-        await prisma.subscription.update({
+        const plan =
+          subscription.items.data[0].price.id === process.env.STRIPE_PRICE_ID_BASIC
+            ? 'basic'
+            : 'pro'
+
+        await prisma.subscription.upsert({
           where: { userId },
-          data: {
+          create: {
+            userId,
+            stripeCustomerId: subscription.customer as string,
             stripeSubscriptionId: subscription.id,
             stripePriceId: subscription.items.data[0].price.id,
-            stripeCurrentPeriodEnd: new Date(
-              subscription.current_period_end * 1000
-            ),
+            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
             status: subscription.status,
-            plan: subscription.items.data[0].price.id ===
-              process.env.STRIPE_PRICE_ID_BASIC
-              ? 'basic'
-              : 'pro',
+            plan,
+          },
+          update: {
+            stripeSubscriptionId: subscription.id,
+            stripePriceId: subscription.items.data[0].price.id,
+            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            status: subscription.status,
+            plan,
           },
         })
         break
@@ -65,32 +66,35 @@ export async function POST(req: Request) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
-        const customer = await stripe.customers.retrieve(
-          subscription.customer as string
-        )
+        const customer = await stripe.customers.retrieve(subscription.customer as string)
 
-        if ('deleted' in customer && customer.deleted) {
-          break
-        }
+        if ('deleted' in customer && customer.deleted) break
 
         const userId = customer.metadata?.userId
+        if (!userId) break
 
-        if (!userId) {
-          break
-        }
+        const plan =
+          subscription.items.data[0].price.id === process.env.STRIPE_PRICE_ID_BASIC
+            ? 'basic'
+            : 'pro'
 
-        await prisma.subscription.update({
+        await prisma.subscription.upsert({
           where: { userId },
-          data: {
+          create: {
+            userId,
+            stripeCustomerId: subscription.customer as string,
+            stripeSubscriptionId: subscription.id,
             stripePriceId: subscription.items.data[0].price.id,
-            stripeCurrentPeriodEnd: new Date(
-              subscription.current_period_end * 1000
-            ),
+            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
             status: subscription.status,
-            plan: subscription.items.data[0].price.id ===
-              process.env.STRIPE_PRICE_ID_BASIC
-              ? 'basic'
-              : 'pro',
+            plan,
+          },
+          update: {
+            stripeSubscriptionId: subscription.id,
+            stripePriceId: subscription.items.data[0].price.id,
+            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            status: subscription.status,
+            plan,
           },
         })
         break
@@ -98,26 +102,16 @@ export async function POST(req: Request) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
-        const customer = await stripe.customers.retrieve(
-          subscription.customer as string
-        )
+        const customer = await stripe.customers.retrieve(subscription.customer as string)
 
-        if ('deleted' in customer && customer.deleted) {
-          break
-        }
+        if ('deleted' in customer && customer.deleted) break
 
         const userId = customer.metadata?.userId
-
-        if (!userId) {
-          break
-        }
+        if (!userId) break
 
         await prisma.subscription.update({
           where: { userId },
-          data: {
-            status: 'canceled',
-            plan: 'free',
-          },
+          data: { status: 'canceled', plan: 'free', stripeSubscriptionId: null },
         })
         break
       }
@@ -126,9 +120,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true })
   } catch (error) {
     console.error('Webhook handler error:', error)
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
 }

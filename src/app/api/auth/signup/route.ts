@@ -14,47 +14,36 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { email, password, name } = signupSchema.parse(body)
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User already exists' },
-        { status: 400 }
-      )
-    }
-
     const hashedPassword = await bcrypt.hash(password, 10)
 
     try {
       const user = await prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-        },
+        data: { email, password: hashedPassword, name },
       })
       return NextResponse.json(
         { message: 'User created successfully', userId: user.id },
         { status: 201 }
       )
     } catch (dbError: any) {
-      console.error('Prisma Create Error:', dbError)
+      if (dbError?.code === 'P2002') {
+        return NextResponse.json(
+          { error: 'An account with this email already exists. Please sign in instead.' },
+          { status: 400 }
+        )
+      }
+      console.error('Signup DB error:', dbError?.code)
       return NextResponse.json(
-        { error: 'Database error', details: dbError.message },
+        { error: 'Something went wrong. Please try again.' },
         { status: 500 }
       )
     }
   } catch (error: any) {
-    console.error('Signup error details:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
         { status: 400 }
       )
     }
-
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
