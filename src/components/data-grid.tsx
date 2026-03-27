@@ -399,25 +399,65 @@ export function DataGrid({
     }}>
       <div className="flex-1 overflow-auto" style={{ fontFamily: 'Calibri, "Segoe UI", Arial, sans-serif' }}>
         <table className="w-full" style={{ borderCollapse: 'collapse' }}>
-          {/* Excel-style Column Headers */}
+          {/* Excel-style two-row header: letters on top, field names below */}
           <thead className="sticky top-0 z-20">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} style={{ background: '#f0f4f0' }}>
-                {/* Row number corner cell */}
+            {/* ── Row 1: Column letters (A, B, C…) ── */}
+            <tr style={{ background: '#e4ede4' }}>
+              {/* Corner */}
+              <th style={{
+                width: 48, minWidth: 48,
+                borderRight: '2px solid #b7c6b7',
+                borderBottom: '1px solid #c8d8c8',
+                background: '#dce8dc',
+                userSelect: 'none',
+              }} />
+              {colLetters.map((letter, i) => (
                 <th
+                  key={`letter-${i}`}
                   style={{
-                    width: 48, minWidth: 48,
-                    borderRight: '1px solid #b7c6b7',
-                    borderBottom: '2px solid #217346',
-                    background: '#e8f0e8',
-                    padding: '0 4px',
+                    minWidth: 160,
+                    borderRight: '1px solid #c8d8c8',
+                    borderBottom: '1px solid #c8d8c8',
+                    background: '#e4ede4',
+                    padding: '3px 0',
+                    textAlign: 'center',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#217346',
+                    letterSpacing: '0.06em',
                     userSelect: 'none',
                   }}
-                />
-                {/* Data columns */}
+                >
+                  {letter}
+                </th>
+              ))}
+              {/* Add field placeholder */}
+              <th style={{
+                width: 120,
+                borderRight: '1px solid #c8d8c8',
+                borderBottom: '1px solid #c8d8c8',
+                background: '#e4ede4',
+              }} />
+              {/* Actions placeholder */}
+              <th style={{ width: 40, borderBottom: '1px solid #c8d8c8', background: '#e4ede4' }} />
+            </tr>
+
+            {/* ── Row 2: Field names with menus ── */}
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} style={{ background: '#f0f4f0' }}>
+                {/* Row number corner */}
+                <th style={{
+                  width: 48, minWidth: 48,
+                  borderRight: '2px solid #b7c6b7',
+                  borderBottom: '2px solid #217346',
+                  background: '#e8f0e8',
+                  padding: '0 4px',
+                  userSelect: 'none',
+                }} />
+                {/* Field name cells */}
                 {headerGroup.headers
                   .filter((h) => h.id !== 'row-number' && h.id !== 'actions')
-                  .map((header, i) => (
+                  .map((header) => (
                     <th
                       key={header.id}
                       style={{
@@ -425,47 +465,28 @@ export function DataGrid({
                         borderRight: '1px solid #b7c6b7',
                         borderBottom: '2px solid #217346',
                         background: '#f0f4f0',
-                        padding: 0,
+                        padding: '3px 8px 5px',
                         userSelect: 'none',
-                        verticalAlign: 'bottom',
+                        verticalAlign: 'middle',
                       }}
                     >
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-                        {/* Column letter */}
-                        <div style={{
-                          textAlign: 'center',
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: '#217346',
-                          paddingTop: 3,
-                          paddingBottom: 1,
-                          letterSpacing: '0.05em',
-                          lineHeight: 1,
-                        }}>
-                          {colLetters[i]}
-                        </div>
-                        {/* Column name with menu */}
-                        <div style={{ padding: '2px 8px 6px' }}>
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                        </div>
-                      </div>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
-                {/* Add column */}
+                {/* Add field button */}
                 <th style={{
                   width: 120,
                   borderRight: '1px solid #b7c6b7',
                   borderBottom: '2px solid #217346',
                   background: '#f0f4f0',
                   padding: '0 12px',
-                  verticalAlign: 'bottom',
+                  verticalAlign: 'middle',
                 }}>
                   <button
                     onClick={onAddColumn}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 4,
                       fontSize: 11, fontWeight: 600, color: '#888',
-                      paddingBottom: 6,
                       cursor: 'pointer',
                       background: 'none', border: 'none',
                       whiteSpace: 'nowrap',
@@ -478,11 +499,7 @@ export function DataGrid({
                   </button>
                 </th>
                 {/* Actions header */}
-                <th style={{
-                  width: 40,
-                  borderBottom: '2px solid #217346',
-                  background: '#f0f4f0',
-                }} />
+                <th style={{ width: 40, borderBottom: '2px solid #217346', background: '#f0f4f0' }} />
               </tr>
             ))}
           </thead>
